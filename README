@@ -1,0 +1,62 @@
+Author - Navaneeth Krishnan Yadunandanan
+
+Student ID - 1428073471 
+
+Program Explanation - 
+
+The project is implemented in C++ using fork system call for running the AWS and the backend servers . The project design involves writing a SINGLE class for the AWS and the Backend servers . The servers.h contains this class definition . There is a virtual function called server_logic which is modified in the servers.cpp program so that the AWS and Backend servers can define their own logic . Also the servers are all run at the same time using the fork system call . During the execution of the main function  in the servers.cpp the fork system call creates different processes for the different servers . In my case i am running server each object in one process . The waitpid() function is used so as to synchronize between processes and wait for child processes . 
+The server.h header file also ensures that the backend servers and the AWS server boots up in the same time but the backend server actually recieves data and starts processing only after the AWS server sends data . For this feature I have used non blocking sockets by making use of the ioctl function . Also the recv function for all the backend servers and the AWS servers is implemented via the Poll method since the sockets are non blocking . Also my program makes use of IOCTL FIONREAD for effective memory management . That is I do not pre allocate buffer , whenever the socket has data available to be read , i find the size of the data to be read using IOCTL FIONREAD and then do a dynamic allocation of the memory for the buffer .  
+
+Code file explanation -	
+
+servers.h - Header file containing the class for basic server definition , based on address family passed to it , it creates an UDP server or a TCP server. There is a virtual function called server_logic() which varies from one derived class to the other derived class
+
+servers.cpp -This main code for the AWS and the backend servers. It has two classes one for the  AWS server and the other for the Backend servers . During the main execution of the program three instances of the backend servers are created from the class Server1 listening on different ports whereas one instance of the AWS class is created ,this is the main AWS server. 
+
+client.cpp - Reads the nums.csv , takes in the reduction formula and sends it to the AWS and then waits for the result from the AWS .
+
+Code Running -
+
+make all 
+
+make Servers 
+
+Terminal A - make Servers
+
+Terminal B - .client <function>
+
+Please Note - I had issues with my nunki cluster as I had discussed it with Pranav , Nachi and Max . Based on the followup email , i have executed this code on a solaris VM running on my machine  . I have no other way of running this code on Nunki because it results in a kernel level bug.
+
+Message Format Exchanged - 
+
+Client --- > AWS = Character Stream
+
+AWS  -------> Backend Servers = Character Stream
+
+Backend Servers --------> AWS = INT stream
+
+AWS -------------> Client = INT stream
+
+All integers are in signed long int format . Appropriate considerations are taken to ensure system portability by making use of size of operator 
+
+
+Project Failure
+
+1) Unknown reduction Function given - Error condition not handled results in segmentation fault 
+
+2) Network Stack Corruption - If server results or exits abnormally , next several iterations of the server will cause random values to be sent on the client . Signal Handlers for garbage collection have been implemented but results in only slight improvement
+
+3) Mixing up lower case and upper case alphabets in reduction function name like MiN or mAX . Assumption that the user will always enter in lower case or UPPER case 
+
+
+Reused code - 
+
+All code references and reused code are from the following places and are appropriatley mentioned as comments in the code base .
+
+1) Unix Network programming Volume 1 Third Edition by W . Richard Stevens, Bill Fenner ,Andrew M Rudoff 
+2) Stackoverflow articles for converting from
+	a)Char to string 
+	b)string to int
+	c)int to string	
+	d)int to char
+	e)char to int
